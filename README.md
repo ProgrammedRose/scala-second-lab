@@ -1,5 +1,3 @@
 # scala-second-lab
-Second Laboratory
-Second Variant
-Abrosimov S. K.
+Second Laboratory,
 23-PO-1
