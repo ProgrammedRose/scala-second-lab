@@ -10,9 +10,11 @@ object MonteCarloMonteCristo {
     val base = total / parts        // тут целое количество частей
     val remaining  = total % parts  // тут остаток
 
-    (0 until parts).toList.map(i => base + (if (i < remaining) 1 else 0)) //
+    // Серия действий: от 0 до parts - 1, преобразуем в список,
+    // применяем функцию (та, что внутри мапа) к каждому элементу списка
+    // Короче: делаем список, который потом меняем согласно выражению внутри мапа
+    (0 until parts).toList.map(i => base + (if (i < remaining) 1 else 0))
   }
-
 
   // Функция, что генерирует n точек и считает попадания по предикату
   // (тут баловство с каррированием и предикатами)
@@ -43,6 +45,9 @@ object MonteCarloMonteCristo {
     implicit val ec = ExecutionContext.fromExecutorService(executor)
 
     try {
+
+      // Тут для каждого потока делаем задачу
+      // Потом каждый поток параллельно выполняет свою задачу
       val futures: List[Future[Long]] = counts.map { n =>
         Future {
           countHits(n) ( rnd =>
@@ -56,8 +61,13 @@ object MonteCarloMonteCristo {
         }
       }
 
-      // собираем полученные значения
+      // Собираем полученные значения
+      // Следующая последовательность действий:
+      //  превращаем List[Future[Long]] в Future[List[Long]] (кожу наружу, одежду внутрь, органы оставим как есть)
+      //  применяем выражение в мапе к тому, что получили на прошлом шаге (суммируем результаты)
       val aggregated = Future.sequence(futures).map(_.foldLeft(0L)(_ + _))
+
+      // Ждем когда все закончат
       val totalHits = Await.result(aggregated, Duration.Inf)
 
       // возвращаем примерное значение pi согласно методу (это из pi/4 = hits/points)
